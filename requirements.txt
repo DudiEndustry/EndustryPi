@@ -1,0 +1,7 @@
+flask
+python-escpos
+evdev
+pyusb
+flask-sqlalchemy
+sqlalchemy
+pycups

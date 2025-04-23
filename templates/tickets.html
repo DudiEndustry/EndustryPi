@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Tickets - Weight Ticket System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Weight Tickets</h2>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#manualTicketModal">
+                Create Manual Ticket
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info" id="rfidStatus">
+            Monitoring RFID reader... Scan a card to create or close a ticket.
+        </div>
+        <div class="alert alert-success" id="weightStatus" style="display: none;">
+            Current Weight: <span id="currentWeight">0.00</span> kg
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>Open Tickets</h3>
+        <div class="row" id="openTickets">
+            {% for ticket in tickets %}
+            {% if ticket.status == 'open' %}
+            <div class="col-md-4 mb-4">
+                <div class="card ticket-card" data-ticket-id="{{ ticket.id }}" data-customer-rfid="{{ ticket.customer.rfid_card }}">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Ticket #{{ ticket.id }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">{{ ticket.customer.name }}</h6>
+                        <p class="card-text">
+                            <strong>Gross Weight:</strong> {{ "%.2f"|format(ticket.gross_weight) }} kg<br>
+                            <strong>Created:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </p>
+                        <div class="text-muted small mb-2">Scan the same RFID card to close this ticket</div>
+                        <button type="button" class="btn btn-primary btn-sm w-100" 
+                                onclick="showCloseTicketModal('{{ ticket.id }}', '{{ ticket.customer.name }}', {{ ticket.gross_weight }})">
+                            Close Ticket Manually
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h3>Closed Tickets</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Gross Weight</th>
+                        <th>Tare Weight</th>
+                        <th>Net Weight</th>
+                        <th>Closed At</th>
+                    </tr>
+                </thead>
+                <tbody id="closedTickets">
+                    {% for ticket in tickets %}
+                    {% if ticket.status == 'closed' %}
+                    <tr>
+                        <td>{{ ticket.id }}</td>
+                        <td>{{ ticket.customer.name }}</td>
+                        <td>{{ "%.2f"|format(ticket.gross_weight) }} kg</td>
+                        <td>{{ "%.2f"|format(ticket.tare_weight) }} kg</td>
+                        <td>{{ "%.2f"|format(ticket.net_weight) }} kg</td>
+                        <td>{{ ticket.closed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Ticket Modal -->
+<div class="modal fade" id="manualTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Manual Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="manualTicketForm">
+                    <div class="mb-3">
+                        <label for="customerSelect" class="form-label">Select Customer</label>
+                        <select class="form-select" id="customerSelect" required>
+                            <option value="">Choose a customer...</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.rfid_card }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="manualWeight" class="form-label">Gross Weight (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="manualWeight" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitManualTicket">Create Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Close Ticket Modal -->
+<div class="modal fade" id="closeTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Close Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="closeTicketForm">
+                    <input type="hidden" id="closeTicketId">
+                    <div class="mb-3">
+                        <label class="form-label">Customer</label>
+                        <input type="text" class="form-control" id="closeTicketCustomer" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gross Weight</label>
+                        <input type="text" class="form-control" id="closeTicketGross" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tareWeight" class="form-label">Tare Weight (kg)</label>
+                        <input type="number" step="0.01" class="form-control" id="tareWeight" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitCloseTicket">Close Ticket</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let lastRfidRead = null;
+let lastWeight = 0;
+
+// Continuous RFID monitoring
+async function monitorRfid() {
+    while (true) {
+        try {
+            const response = await fetch('/api/rfid/read');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            if (data.card_id && data.card_id !== lastRfidRead) {
+                lastRfidRead = data.card_id;
+                handleRfidScan(data.card_id);
+            }
+        } catch (error) {
+            console.error('Error reading RFID:', error);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+}
+
+// Simulate weight reading (replace with actual weight reading endpoint)
+async function monitorWeight() {
+    while (true) {
+        try {
+            const response = await fetch('/api/weight/read');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            if (data.weight) {
+                lastWeight = data.weight;
+                document.getElementById('currentWeight').textContent = data.weight.toFixed(2);
+                document.getElementById('weightStatus').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error reading weight:', error);
+            document.getElementById('weightStatus').style.display = 'none';
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
+async function handleRfidScan(cardId) {
+    // Check if there's an open ticket for this card
+    const openTicket = document.querySelector(`.ticket-card[data-customer-rfid="${cardId}"]`);
+    
+    if (openTicket) {
+        // Close the existing ticket
+        const ticketId = openTicket.dataset.ticketId;
+        await closeTicket(ticketId, cardId, lastWeight);
+    } else {
+        // Create a new ticket
+        await createTicket(cardId, lastWeight);
+    }
+}
+
+async function createTicket(rfidCard, weight) {
+    try {
+        const response = await fetch('/api/tickets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                rfid_card: rfidCard,
+                gross_weight: weight
+            })
+        });
+        
+        if (!response.ok) {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const error = await response.json();
+                throw new Error(error.error || 'Error creating ticket');
+            } else {
+                throw new Error(`Server error: ${response.status}`);
+            }
+        }
+        
+        await response.json(); // Make sure we can parse the response
+        location.reload();
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error creating ticket');
+    }
+}
+
+async function closeTicket(ticketId, rfidCard, tareWeight) {
+    try {
+        const response = await fetch(`/api/tickets/${ticketId}/close`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                tare_weight: tareWeight
+            })
+        });
+        
+        if (!response.ok) {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const error = await response.json();
+                throw new Error(error.error || 'Error closing ticket');
+            } else {
+                throw new Error(`Server error: ${response.status}`);
+            }
+        }
+
+        await response.json(); // Validate JSON response
+        location.reload();
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error closing ticket');
+    }
+}
+
+// Manual ticket creation
+document.getElementById('submitManualTicket').addEventListener('click', async function() {
+    const form = document.getElementById('manualTicketForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const rfidCard = document.getElementById('customerSelect').value;
+    const weight = parseFloat(document.getElementById('manualWeight').value);
+    
+    await createTicket(rfidCard, weight);
+    const modal = bootstrap.Modal.getInstance(document.getElementById('manualTicketModal'));
+    if (modal) {
+        modal.hide();
+    }
+});
+
+// Manual ticket closing
+document.getElementById('submitCloseTicket').addEventListener('click', async function() {
+    const form = document.getElementById('closeTicketForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const ticketId = document.getElementById('closeTicketId').value;
+    const tareWeight = parseFloat(document.getElementById('tareWeight').value);
+    
+    await closeTicket(ticketId, null, tareWeight);
+    const modal = bootstrap.Modal.getInstance(document.getElementById('closeTicketModal'));
+    if (modal) {
+        modal.hide();
+    }
+});
+
+// Start monitoring
+monitorRfid();
+monitorWeight();
+
+function showCloseTicketModal(ticketId, customerName, grossWeight) {
+    document.getElementById('closeTicketId').value = ticketId;
+    document.getElementById('closeTicketCustomer').value = customerName;
+    document.getElementById('closeTicketGross').value = grossWeight.toFixed(2);
+    document.getElementById('tareWeight').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('closeTicketModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

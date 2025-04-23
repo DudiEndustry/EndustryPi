@@ -1,0 +1,39 @@
+# Ignore database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore environment files
+.env
+*.env
+
+# Ignore logs
+*.log
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore node_modules if applicable
+node_modules/
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.bak
+
+# Ignore the entire project directory
+/home/pi/Desktop/Home/endustrypi/
