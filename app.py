@@ -7,6 +7,7 @@ import queue
 import random  # Temporary for weight simulation
 from werkzeug.exceptions import HTTPException
 import traceback
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///weight_system.db'
@@ -31,7 +32,12 @@ def handle_error(error):
     # Only return JSON for API routes
     if request.path.startswith('/api/'):
         return jsonify(error=str(error)), code
-    raise error
+    
+    # For non-API routes, render an error template or return the default Werkzeug error page
+    # Re-raising the error here causes the 500 Internal Server Error for 404s etc.
+    # Instead, let Werkzeug handle it or render a custom error page
+    # For now, let's return the error directly, which Werkzeug should handle
+    return error
 
 @app.route('/')
 def index():
@@ -159,6 +165,106 @@ def print_customer_label(customer_id):
         
         return jsonify({"success": True})
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/customers/<int:customer_id>/tickets', methods=['GET'])
+def get_customer_tickets(customer_id):
+    try:
+        # Get date range from query parameters
+        date_from = request.args.get('from', None)
+        date_to = request.args.get('to', None)
+        
+        # Parse dates if provided
+        from_date = None
+        to_date = None
+        
+        if date_from:
+            try:
+                from_date = datetime.strptime(date_from, '%Y-%m-%d')
+            except ValueError:
+                return jsonify({"error": "Invalid 'from' date format. Use YYYY-MM-DD"}), 400
+        
+        if date_to:
+            try:
+                to_date = datetime.strptime(date_to, '%Y-%m-%d')
+                # Set to end of day
+                to_date = to_date + timedelta(days=1, microseconds=-1)
+            except ValueError:
+                return jsonify({"error": "Invalid 'to' date format. Use YYYY-MM-DD"}), 400
+        
+        # Query for tickets with optional date filtering
+        query = WeightTicket.query.filter_by(customer_id=customer_id)
+        
+        if from_date:
+            query = query.filter(WeightTicket.created_at >= from_date)
+        
+        if to_date:
+            query = query.filter(WeightTicket.created_at <= to_date)
+        
+        # Order by most recent first
+        tickets = query.order_by(WeightTicket.created_at.desc()).all()
+        
+        # Format tickets for JSON response
+        ticket_list = []
+        for ticket in tickets:
+            ticket_dict = {
+                'id': ticket.id,
+                'gross_weight': ticket.gross_weight,
+                'tare_weight': ticket.tare_weight,
+                'net_weight': ticket.net_weight,
+                'status': ticket.status,
+                'created_at': ticket.created_at.isoformat(),
+                'closed_at': ticket.closed_at.isoformat() if ticket.closed_at else None
+            }
+            ticket_list.append(ticket_dict)
+            
+        return jsonify(ticket_list)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/tickets/<int:ticket_id>/print', methods=['POST'])
+def print_ticket_receipt_api(ticket_id):
+    try:
+        ticket = WeightTicket.query.get_or_404(ticket_id)
+        
+        if ticket.status != 'closed':
+            return jsonify({"error": "Cannot print receipt for an open ticket"}), 400
+            
+        ticket_data = {
+            'id': ticket.id,
+            'customer_name': ticket.customer.name,
+            'gross_weight': ticket.gross_weight,
+            'tare_weight': ticket.tare_weight,
+            'net_weight': ticket.net_weight,
+            # Add date/time if needed by the printer function
+            'closed_at': ticket.closed_at 
+        }
+        printer.print_ticket(ticket_data)
+        
+        return jsonify({"success": True, "message": f"Ticket #{ticket_id} sent to printer."})
+    except Exception as e:
+        # Log the detailed error
+        traceback.print_exc() 
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/tickets/<int:ticket_id>', methods=['DELETE'])
+def delete_ticket_api(ticket_id):
+    try:
+        ticket = WeightTicket.query.get_or_404(ticket_id)
+        
+        # Optional: Add checks here, e.g., only allow deleting closed tickets
+        # if ticket.status == 'open':
+        #     return jsonify({"error": "Cannot delete an open ticket"}), 400
+
+        db.session.delete(ticket)
+        db.session.commit()
+        
+        return jsonify({"success": True, "message": f"Ticket #{ticket_id} deleted successfully."})
+    except Exception as e:
+        db.session.rollback()
+        # Log the detailed error
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
