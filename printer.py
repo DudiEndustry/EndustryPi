@@ -2,7 +2,7 @@ import cups
 from datetime import datetime
 
 class TicketPrinter:
-    def __init__(self, printer_name="PiPrinter"):
+    def __init__(self, printer_name="EndustryPrinter"):
         self.printer_name = printer_name
         self.conn = cups.Connection()
 
@@ -35,7 +35,7 @@ class TicketPrinter:
 
             # Print using CUPS with specific options for thermal receipt
             options = {
-                'media': 'custom_2x3in_2x3in',
+                'media': 'custom_3x2in_3x2in',
                 'fit-to-page': 'True',
                 'page-left': '0',
                 'page-right': '0',

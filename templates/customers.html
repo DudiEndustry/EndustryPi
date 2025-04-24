@@ -11,12 +11,12 @@
                 <form id="customerForm">
                     <div class="mb-3">
                         <label for="customerName" class="form-label">Customer Name</label>
-                        <input type="text" class="form-control" id="customerName" required>
+                        <input type="text" class="form-control" id="customerName" name="customerName" required>
                     </div>
                     <div class="mb-3">
                         <label for="rfidCard" class="form-label">RFID Card</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="rfidCard" readonly>
+                            <input type="text" class="form-control" id="rfidCard" name="rfidCard" readonly>
                             <button type="button" class="btn btn-primary" id="scanRfid">Scan RFID</button>
                         </div>
                     </div>
@@ -46,10 +46,11 @@
                         <td>{{ customer.rfid_card }}</td>
                         <td>{{ customer.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-info" 
-                                    onclick="printCustomerLabel({{ customer.id }}, '{{ customer.name }}', '{{ customer.rfid_card }}')">
+                            <button type="button" class="btn btn-sm btn-info"
+                                onclick="printCustomerLabel({{ customer.id }}, '{{ customer.name }}', '{{ customer.rfid_card }}')">
                                 Print Label
                             </button>
+                            
                         </td>
                     </tr>
                     {% endfor %}
@@ -62,87 +63,87 @@
 
 {% block scripts %}
 <script>
-let scanning = false;
+    let scanning = false;
 
-document.getElementById('scanRfid').addEventListener('click', async function() {
-    if (scanning) return;
-    
-    this.textContent = 'Scanning...';
-    scanning = true;
-    
-    while (scanning) {
+    document.getElementById('scanRfid').addEventListener('click', async function () {
+        if (scanning) return;
+
+        this.textContent = 'Scanning...';
+        scanning = true;
+
+        while (scanning) {
+            try {
+                const response = await fetch('/api/rfid/read');
+                const data = await response.json();
+
+                if (data.card_id) {
+                    document.getElementById('rfidCard').value = data.card_id;
+                    scanning = false;
+                    this.textContent = 'Scan RFID';
+                    break;
+                }
+            } catch (error) {
+                console.error('Error reading RFID:', error);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    });
+
+    async function printCustomerLabel(id, name, rfidCard) {
         try {
-            const response = await fetch('/api/rfid/read');
-            const data = await response.json();
-            
-            if (data.card_id) {
-                document.getElementById('rfidCard').value = data.card_id;
-                scanning = false;
-                this.textContent = 'Scan RFID';
-                break;
+            const response = await fetch('/api/customers/' + id + '/print-label', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error printing label');
+            }
+
+            alert('Label printed successfully');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error printing label');
+        }
+    }
+
+    document.getElementById('customerForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById('customerName').value;
+        const rfidCard = document.getElementById('rfidCard').value;
+
+        if (!name || !rfidCard) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    rfid_card: rfidCard
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                await printCustomerLabel(data.id, name, rfidCard);
+                location.reload();
+            } else {
+                alert('Error adding customer');
             }
         } catch (error) {
-            console.error('Error reading RFID:', error);
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
-});
-
-async function printCustomerLabel(id, name, rfidCard) {
-    try {
-        const response = await fetch('/api/customers/' + id + '/print-label', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Error printing label');
-        }
-        
-        alert('Label printed successfully');
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error printing label');
-    }
-}
-
-document.getElementById('customerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('customerName').value;
-    const rfidCard = document.getElementById('rfidCard').value;
-    
-    if (!name || !rfidCard) {
-        alert('Please fill in all fields');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/customers', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: name,
-                rfid_card: rfidCard
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            await printCustomerLabel(data.id, name, rfidCard);
-            location.reload();
-        } else {
+            console.error('Error:', error);
             alert('Error adding customer');
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error adding customer');
-    }
-});
+    });
 </script>
 {% endblock %}
