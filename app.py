@@ -59,7 +59,7 @@ def read_weight():
     try:
         # TODO: Replace with actual weight reading from hardware
         # This is just a simulation for testing
-        weight = random.uniform(0, 1000)
+        weight = random.uniform(3000, 4500)
         return jsonify({"weight": weight})
     except Exception as e:
         return jsonify({"error": str(e)}), 500

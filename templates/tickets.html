@@ -8,7 +8,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <h2>Weight Tickets</h2>
             <button type="button" class="custom-btn btn-2" data-bs-toggle="modal" data-bs-target="#manualTicketModal">
-                Create Manual Ticket
+                Create Manually
             </button>
         </div>
     </div>
@@ -16,51 +16,165 @@
 
 <div id="statusPanel">
     <div class="row mb-4">
-        <!-- Status panels with 1/3 width for RFID and 2/3 width for weight -->
+        <!-- 1/3 Width Scale Column -->
         <div class="col-md-4">
-            <!-- RFID Status Card with indicator light -->
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary text-white py-2">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div><i class="bi bi-credit-card me-2"></i> RFID Status</div>
-                        <!-- Indicator light - red by default, turns green when card detected -->
-                        <div class="indicator-light" id="rfidIndicator">
-                            <span class="badge rounded-pill bg-danger">&nbsp;</span>
-                        </div>
+            <!-- Weight Scale Card -->
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light py-2">
+                    <div class="d-flex align-items-center">
+                        <svg fill="#089063" height="24px" width="24px" version="1.1" id="Capa_1" viewBox="0 0 385.33 385.33" class="me-2">
+                            <path d="M179.338,61.47c-37.396,0-72.553,14.562-98.996,41.004c-54.584,54.585-54.584,143.403,0,197.99 c26.443,26.442,61.6,41.004,98.996,41.004c37.396,0,72.553-14.561,98.995-41.004c54.584-54.587,54.584-143.405,0-197.99 C251.891,76.031,216.733,61.47,179.338,61.47z M257.12,279.251c-20.776,20.775-48.4,32.217-77.782,32.217 c-29.383,0-57.007-11.441-77.782-32.217c-42.889-42.89-42.889-112.676-0.001-155.564c20.776-20.775,48.4-32.217,77.783-32.217 c29.382,0,57.006,11.441,77.782,32.217C300.009,166.575,300.008,236.361,257.12,279.251z"></path>
+                            <path d="M237.214,136.594c-22.619,16.857-49.848,37.341-58.857,44.921c-4.787,0.234-9.506,2.156-13.161,5.812 c-7.811,7.811-7.811,20.475,0,28.285c7.811,7.811,20.475,7.811,28.284,0c3.656-3.655,5.578-8.375,5.812-13.161 c7.578-9.008,28.063-36.238,44.921-58.859c1.482-1.99,1.281-4.768-0.475-6.522C241.982,135.311,239.204,135.111,237.214,136.594z"></path>
+                        </svg>
+                        <h5 class="mb-0 fs-6">Scale</h5>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2 small" id="weightStatusText">Disconnected</span>
+                        <label class="switch mb-0" style="transform: scale(0.8);">
+                            <input type="checkbox" id="weightConnected" disabled>
+                            <span class="slider"></span>
+                        </label>
                     </div>
                 </div>
-                <div class="card-body bg-light" id="rfidStatus">
-                    <div class="d-flex flex-column">
-                        <p class="mb-1">Monitoring RFID reader...</p>
-                        <div id="scannedCardInfo" class="d-none">
-                            <div class="alert alert-success py-2 mb-2">
-                                <div class="fw-bold mb-1">Card detected!</div>
-                                <small>Customer: <span id="scannedCustomerName">-</span></small><br>
-                                <small>RFID: <span id="scannedCardId">-</span></small>
+                <div class="card-body p-2">
+                    <!-- Weight Display -->
+                    <div class="digital-display py-3" id="weightDisplayContainer">
+                        <div class="position-relative">
+                            <h2 class="display-4 mb-0" style="font-family: 'Courier New', monospace; letter-spacing: 0.1em;">
+                                <span id="currentWeight" class="text-success">0</span>
+                            </h2>
+                            <div class="d-flex justify-content-between align-items-center px-4">
+                                <p class="text-light mb-0">kg</p>
+                                <div class="badge">
+                                    LIVE
+                                    <span></span>
+                                </div>
                             </div>
                         </div>
+                        
                     </div>
+                    
+                    
                 </div>
             </div>
         </div>
         
+        <!-- 2/3 Width RFID Info Section -->
         <div class="col-md-8">
-            <!-- Weight display with digital style -->
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-success text-white py-2">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-speedometer me-2"></i> Weight Reading
-                    </div>
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light py-2">
+                    <ul class="nav nav-tabs card-header-tabs" id="rfidTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="status-tab" data-bs-toggle="tab" data-bs-target="#status-content" type="button" role="tab" aria-controls="status-content" aria-selected="true">
+                                <i class="bi bi-credit-card-2-front-fill me-1"></i> RFID Status
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-content" type="button" role="tab" aria-controls="info-content" aria-selected="false">
+                                <i class="bi bi-info-circle-fill me-1"></i> Customer Info
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="actions-tab" data-bs-toggle="tab" data-bs-target="#actions-content" type="button" role="tab" aria-controls="actions-content" aria-selected="false">
+                                <i class="bi bi-gear-fill me-1"></i> Quick Actions
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-                <div class="card-body bg-dark text-light py-3 text-center">
-                    <div class="digital-display">
-                        <h2 class="text-center" style="font-family: 'Courier New', monospace;">
-                            <span id="currentWeight" class="text-success" style="font-size: 2.5rem; letter-spacing: 0.1em;">0.00</span>
-                            <span class="ms-2 text-light">kg</span>
-                        </h2>
-                        <div class="d-flex justify-content-center mt-2">
-                            <div class="bg-secondary px-3 py-1 rounded-pill">
-                                <small class="text-light">LIVE READING</small>
+                <div class="card-body p-0">
+                    <div class="tab-content" id="rfidTabsContent">
+                        <!-- RFID Status Tab -->
+                        <div class="tab-pane fade show active p-3" id="status-content" role="tabpanel" aria-labelledby="status-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="indicator-light me-2" id="rfidIndicator">
+                                        <span class="badge rounded-pill bg-danger">&nbsp;</span>
+                                    </div>
+                                    <p class="mb-0" id="rfidStatusMessage">Waiting for card...</p>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2 small" id="rfidStatusText">Disconnected</span>
+                                    <label class="switch mb-0" style="transform: scale(0.8);">
+                                        <input type="checkbox" id="rfidConnected" disabled>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="scannedCardInfo" class="d-none">
+                                <div class="alert alert-success py-2 mb-2">
+                                    <div class="fw-bold mb-1">Customer Information</div>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <small><strong>Name:</strong> <span id="scannedCustomerName">-</span></small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small><strong>Card ID:</strong> <span id="scannedCardId">-</span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="cardActionInfo" class="alert alert-info py-2 mb-0">
+                                    <small id="cardActionMessage">Ready to process card...</small>
+                                </div>
+                            </div>
+                            
+                            <div id="noCardInfo" class="alert alert-secondary mb-0">
+                                <div class="text-center py-2">
+                                    <i class="bi bi-credit-card-2-front" style="font-size: 2rem; opacity: 0.4;"></i>
+                                    <p class="mt-2 mb-0">Waiting for card scan...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer Info Tab -->
+                        <div class="tab-pane fade p-3" id="info-content" role="tabpanel" aria-labelledby="info-tab">
+                            <div class="mb-3">
+                                <select class="form-select" id="quickCustomerSelect">
+                                    <option value="">Select a customer...</option>
+                                    {% for customer in customers %}
+                                    <option value="{{ customer.rfid_card }}">{{ customer.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div id="selectedCustomerInfo" class="alert alert-light border mb-0 d-none">
+                                <div class="fw-bold mb-2">Selected Customer Details</div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <small><strong>Name:</strong> <span id="selectedCustomerName">-</span></small>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <small><strong>RFID Card:</strong> <span id="selectedCustomerRfid">-</span></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions Tab -->
+                        <div class="tab-pane fade p-3" id="actions-content" role="tabpanel" aria-labelledby="actions-tab">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border bg-light">
+                                        <div class="card-body p-3">
+                                            <h6 class="card-title">Create Manual Ticket</h6>
+                                            <p class="card-text small">Quickly create a new ticket with the current weight.</p>
+                                            <button class="btn btn-sm btn-primary" id="quickCreateTicket">
+                                                <i class="bi bi-plus-circle"></i> Create Ticket
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border bg-light">
+                                        <div class="card-body p-3">
+                                            <h6 class="card-title">Close Ticket</h6>
+                                            <p class="card-text small">Close an open ticket with the current weight.</p>
+                                            <button class="btn btn-sm btn-warning" id="quickCloseTicket">
+                                                <i class="bi bi-check-circle"></i> Close Ticket
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -84,7 +198,7 @@
                     </div>
                 </div>
                 <div class="card-body bg-light py-3">
-                    <select class="form-select" id="quickCustomerSelect">
+                    <select class="form-select" id="manualCustomerSelect">
                         <option value="">Choose a customer...</option>
                         {% for customer in customers %}
                         <option value="{{ customer.rfid_card }}">{{ customer.name }}</option>
@@ -114,6 +228,48 @@
     </div>
 </div>
 
+<!-- From Uiverse.io by Zain-Muhammad --> 
+<!-- <div style="width: 360px; scale: 1.4;">
+<div class="load-card">
+<div class="card-name-price">
+  <div class="load-card-nm">Customer Name</div>
+  <div class="load-card-price">2399KG</div>
+</div>
+<div class="card-time">
+  <div class="load-card-tm">Time: 13:12</div>
+</div>
+<div class="card-info">
+  <div class="card-date-wrapper">
+    <div class="month">Jun</div>
+    <div class="date">07</div>
+    <div class="day">Wed</div>
+  </div>
+  <div class="card-city-unit-wrapper">
+    <div class="city-with-mi">
+      <span class="round-icon"></span>
+      <div class="city-nm">4392Kg</div>
+      <span class="mi">Initial Weight</span>
+    </div>
+    <div class="city-with-mi">
+      <span class="square-icon"></span>
+      <div class="city-nm">Waiting...</div>
+      <span class="mi">Final Weight</span>
+    </div>
+  </div>
+</div>
+<div class="units-wrapper">
+  <div class="pills-wrapper">
+    <span class="unit-pill">TL</span>
+    <span class="unit-pill">F</span>
+    <span class="unit-pill">48 ft</span>
+    <span class="unit-pill">46000 lbs</span>
+  </div>
+  <div class="mi">197mi</div>
+</div>
+</div>
+
+</div> -->
+
 <div class="row mb-2">
     <div class="col-12 d-flex justify-content-between align-items-center">
         <h3 class="mb-0">Open Tickets</h3>
@@ -125,47 +281,71 @@
     </div>
 </div>
 
+<!-- Open tickets section -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="d-flex flex-wrap" id="openTickets">
+            {% set open_ticket_count = 0 %}
             {% for ticket in tickets %}
-            {% if ticket.status == 'open' %}
-            <div class="ticket-container col-md-3 mb-3">
-                <div class="card ticket-card border-0 shadow-sm h-100" data-ticket-id="{{ ticket.id }}" data-customer-rfid="{{ ticket.customer.rfid_card }}">
-                    <div class="card-header bg-warning text-dark py-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="card-title mb-0">Ticket #{{ ticket.id }}</h6>
-                            <span class="badge bg-danger"><i class="bi bi-truck"></i> Awaiting</span>
+                {% if ticket.status == 'open' %}
+                    {% set open_ticket_count = open_ticket_count + 1 %}
+                    <div class="ticket-container col-md-3 mb-3">
+                        <div class="card ticket-card border-0 shadow-sm h-100" data-ticket-id="{{ ticket.id }}" data-customer-rfid="{{ ticket.customer.rfid_card }}">
+                            <div class="card-header bg-warning text-dark py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-title mb-0">Ticket #{{ ticket.id }}</h6>
+                                    <span class="badge bg-danger"><i class="bi bi-truck"></i> Awaiting</span>
+                                </div>
+                            </div>
+                            <div class="card-body bg-light p-3">
+                                <h6 class="card-subtitle mb-2 text-muted">{{ ticket.customer.name }}</h6>
+                                <div class="ticket-info mb-2">
+                                    <div><strong>Gross Weight:</strong> {{ "%.2f"|format(ticket.gross_weight) }} kg</div>
+                                    <div><strong>Created:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                </div>
+                                <div class="alert alert-info py-2 small mb-2">
+                                    <i class="bi bi-info-circle"></i> Truck expected to return
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="showManualWeightInput('{{ ticket.id }}')">
+                                        <i class="bi bi-keyboard"></i> Enter Weight 
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body bg-light p-3">
-                        <h6 class="card-subtitle mb-2 text-muted">{{ ticket.customer.name }}</h6>
-                        <div class="ticket-info mb-2">
-                            <div><strong>Gross Weight:</strong> {{ "%.2f"|format(ticket.gross_weight) }} kg</div>
-                            <div><strong>Created:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                {% endif %}
+            {% endfor %}
+            
+            {% if open_ticket_count == 0 %}
+                <!-- Display a single, centered "No Open Tickets" placeholder -->
+                <div class="col-12 d-flex justify-content-center align-items-center my-4">
+                    <div class="card ticket-card border-0 shadow-sm bg-light" style="max-width: 400px;">
+                        <div class="card-header bg-secondary text-white py-2 opacity-75">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0">No Open Tickets</h6>
+                                <span class="badge bg-light text-dark"><i class="bi bi-info-circle"></i> Empty</span>
+                            </div>
                         </div>
-                        <div class="alert alert-info py-2 small mb-2">
-                            <i class="bi bi-info-circle"></i> Truck expected to return for weighing
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-sm btn-primary" 
-                                    onclick="showCloseTicketModal('{{ ticket.id }}', '{{ ticket.customer.name }}', '{{ ticket.gross_weight }}')">
-                                <i class="bi bi-truck"></i> Close With Scale
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                    onclick="showManualWeightInput('{{ ticket.id }}')">
-                                <i class="bi bi-keyboard"></i> Enter Weight Manually
+                        <div class="card-body bg-light p-4 text-center">
+                            <div class="mb-3">
+                                <i class="bi bi-ticket-perforated" style="font-size: 3rem; opacity: 0.4;"></i>
+                            </div>
+                            <h5 class="text-muted mb-3">No Active Tickets Found</h5>
+                            <p class="text-secondary mb-3">Create a new ticket by scanning an RFID card or using the manual creation options.</p>
+                            <button type="button" class="btn btn-outline-primary" onclick="document.querySelector('button[data-bs-target=\'#manualTicketModal\']').click()">
+                                <i class="bi bi-plus-circle"></i> Create New Ticket
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
             {% endif %}
-            {% endfor %}
         </div>
     </div>
 </div>
 
+<!-- Closed tickets section -->
 <div class="row">
     <div class="col-12">
         <h3>Closed Tickets</h3>
@@ -270,39 +450,6 @@
     </div>
 </div>
 
-<!-- Close Ticket Modal -->
-<div class="modal fade" id="closeTicketModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Close Ticket</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="closeTicketForm">
-                    <input type="hidden" id="closeTicketId">
-                    <div class="mb-3">
-                        <label class="form-label">Customer</label>
-                        <input type="text" class="form-control" id="closeTicketCustomer" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Gross Weight</label>
-                        <input type="text" class="form-control" id="closeTicketGross" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="tareWeight" class="form-label">Tare Weight (kg)</label>
-                        <input type="number" step="0.01" class="form-control" id="tareWeight" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="submitCloseTicket">Close Ticket</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmationModal" tabindex="-1">
     <div class="modal-dialog">
@@ -326,429 +473,1125 @@
 
 {% block scripts %}
 <script>
-let lastRfidRead = null;
-let lastWeight = 0;
+// Define WeightScale module
+const WeightScale = (function() {
+    // Private variables
+    let toggleId = '';
+    let statusTextId = '';
+    let weightDisplayId = '';
+    let containerDisplayId = '';
+    let lastWeight = 0;
+    let monitorInterval = null;
+    let connectionAttempts = 0;
+    
+    // Initialize the module
+    function init(weightToggleId, weightStatusId, currentWeightId, weightContainerDisplayId) {
+        toggleId = weightToggleId;
+        statusTextId = weightStatusId;
+        weightDisplayId = currentWeightId;
+        containerDisplayId = weightContainerDisplayId; // Corrected variable name
+        
+        // Initialize to disconnected state
+        updateConnectionStatus(false);
+        
+        // Start monitoring the weight scale
+        startMonitoring();
+        
+        return this;
+    }
+    
+    // Start monitoring the weight scale
+    function startMonitoring() {
+        if (monitorInterval) {
+            clearInterval(monitorInterval);
+        }
+        
+        // Poll the weight scale every second
+        monitorInterval = setInterval(readWeight, 1000);
+    }
+    
+    // Update connection status UI
+    function updateConnectionStatus(isConnected) {
+        const weightToggle = document.getElementById(toggleId);
+        const weightStatusText = document.getElementById(statusTextId);
+        
+        if (weightToggle && weightStatusText) {
+            weightToggle.checked = isConnected;
+            weightStatusText.textContent = isConnected ? 'Connected' : 'Disconnected';
+            
+            // Add/remove 'text-danger' class based on connection status
+            if (isConnected) {
+                weightStatusText.classList.remove('text-danger');
+            } else {
+                weightStatusText.classList.add('text-danger');
+            }
+        }
+    }
+    
+    // Read weight from the scale
+    async function readWeight() {
+        try {
+            const response = await fetch('/api/weight/read');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Update connection status - we're connected if we got here
+            updateConnectionStatus(true);
+            connectionAttempts = 0;
+            
+            const data = await response.json();
+            
+            if (data.weight !== undefined) { // Check if weight property exists
+                updateWeightDisplay(data.weight);
+            }
+        } catch (error) {
+            console.error('Error reading weight:', error);
+            
+            // Update connection status on repeated failures
+            connectionAttempts++;
+            if (connectionAttempts >= 3) {
+                updateConnectionStatus(false);
+                showErrorInDisplay();
+                // Optionally stop polling after too many errors
+                // clearInterval(monitorInterval);
+                // monitorInterval = null;
+            }
+        }
+    }
+    
+    // Update the weight display
+    function updateWeightDisplay(weight) {
+        const weightElement = document.getElementById(weightDisplayId);
+        if (!weightElement) return;
+        
+        // Store the weight value
+        lastWeight = weight;
+        
+        // Round weight to the nearest integer for display
+        const roundedWeight = Math.round(weight);
+        weightElement.textContent = roundedWeight;
+        
+        // Add a subtle flash effect to show the reading is live
+        const container = document.getElementById(containerDisplayId);
+        if (container) {
+            container.classList.add('reading-update');
+            setTimeout(() => {
+                container.classList.remove('reading-update');
+            }, 200); // Match CSS transition duration if any
+        }
+    }
+    
+    // Show error in the digital display
+    function showErrorInDisplay() {
+        const digitalDisplay = document.getElementById(containerDisplayId);
+        if (digitalDisplay) {
+            // Preserve structure but show error
+            const weightElement = document.getElementById(weightDisplayId);
+            if (weightElement) weightElement.textContent = 'ERR';
+            // Optionally add an error message elsewhere or change styles
+            console.error("Error connecting to weight scale shown in UI");
+        }
+    }
+    
+    // Get the last recorded weight value
+    function getLastWeight() {
+        return lastWeight;
+    }
+    
+    // Public API
+    return {
+        init: init,
+        getLastWeight: getLastWeight
+    };
+})();
+
+// Define RFIDReader module
+const RFIDReader = (function() {
+    // Private variables
+    let config = {}; // Store configuration
+    let lastCardId = null; // Track last processed card ID
+    let pollInterval = null; // Interval timer for polling
+    let isPolling = false; // Flag to check if polling is active
+    const POLL_INTERVAL_MS = 1500; // Polling interval
+
+    // Initialize the module with configuration
+    function init(userConfig) {
+        config = userConfig; // Store the passed configuration
+        updateConnectionStatus(false); // Assume disconnected initially
+        updateCardStatus(null); // Initial status: waiting
+        // Start polling the backend for card reads
+        startPolling();
+        return this;
+    }
+
+    // Update connection status UI
+    function updateConnectionStatus(isConnected) {
+        const toggle = document.getElementById(config.toggleId);
+        const statusText = document.getElementById(config.statusTextId);
+        const indicator = document.getElementById(config.indicatorId)?.querySelector('.badge');
+
+        if (toggle) toggle.checked = isConnected;
+        if (statusText) statusText.textContent = isConnected ? 'Connected' : 'Disconnected';
+        if (indicator) {
+            indicator.classList.toggle('bg-success', isConnected);
+            indicator.classList.toggle('bg-danger', !isConnected);
+        }
+    }
+
+    // Update card status message and display
+    function updateCardStatus(cardId, customerName = null, message = null, isError = false) {
+        const statusMessage = document.getElementById(config.statusMessageId);
+        const cardInfo = document.getElementById(config.cardInfoId);
+        const noCardInfo = document.getElementById(config.noCardInfoId);
+        const cardNameEl = document.getElementById(config.cardNameId);
+        const cardIdEl = document.getElementById(config.cardIdId);
+        const cardActionMessageEl = document.getElementById(config.cardActionMessageId);
+
+        if (statusMessage) {
+            statusMessage.textContent = message || (cardId ? 'Card detected' : 'Waiting for card...');
+        }
+
+        if (cardId && customerName) {
+            if (cardInfo) cardInfo.classList.remove('d-none');
+            if (noCardInfo) noCardInfo.style.display = 'none';
+            if (cardNameEl) cardNameEl.textContent = customerName;
+            if (cardIdEl) cardIdEl.textContent = cardId;
+            if (cardActionMessageEl) {
+                 cardActionMessageEl.textContent = 'Ready to process card...';
+                 cardActionMessageEl.parentElement.className = 'alert alert-info py-2 mb-0';
+            }
+        } else {
+            if (cardInfo) cardInfo.classList.add('d-none');
+            if (noCardInfo) noCardInfo.style.display = 'block';
+            if (cardNameEl) cardNameEl.textContent = '-';
+            if (cardIdEl) cardIdEl.textContent = '-';
+        }
+
+        if (isError && cardActionMessageEl) {
+             cardActionMessageEl.textContent = message || 'Error processing card.';
+             cardActionMessageEl.parentElement.className = 'alert alert-danger py-2 mb-0';
+        }
+    }
+
+    // Fetch customer details for a given card ID
+    async function fetchCustomerDetails(cardId) {
+        // This function assumes an API endpoint exists to get customer details by RFID
+        // Since it doesn't exist in app.py, we'll simulate or return null
+        // Example: /api/customer/by-rfid/{cardId}
+        // For now, let's try finding the name from the dropdown if available
+        const customerSelect = document.getElementById('quickCustomerSelect');
+        if (customerSelect) {
+            for (let option of customerSelect.options) {
+                if (option.value === cardId) {
+                    return { name: option.text };
+                }
+            }
+        }
+        return null; // Customer not found or endpoint doesn't exist
+    }
+
+    // Poll the server for RFID reads
+    async function pollForCard() {
+        try {
+            // Use the /api/rfid/read endpoint which reads from the queue
+            const response = await fetch('/api/rfid/read');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            updateConnectionStatus(true); // Connected if fetch works
+            const data = await response.json();
+
+            if (data.card_id && data.card_id !== lastCardId) {
+                lastCardId = data.card_id; // Update last processed card ID
+                
+                // Fetch customer details (simulated/placeholder)
+                const customer = await fetchCustomerDetails(lastCardId);
+                const customerName = customer ? customer.name : 'Unknown Customer';
+
+                // Update UI immediately
+                updateCardStatus(lastCardId, customerName, 'Card detected');
+
+                // Trigger the callback if provided
+                if (config.onCardDetected && typeof config.onCardDetected === 'function') {
+                    // Wrap the call to handle potential errors in the callback itself
+                    try {
+                        await config.onCardDetected(lastCardId);
+                    } catch (callbackError) {
+                        console.error("Error in onCardDetected callback:", callbackError);
+                        updateCardStatus(lastCardId, customerName, `Error processing card: ${callbackError.message}`, true);
+                    }
+                }
+            } else if (!data.card_id) {
+                // No card detected or same card still present
+                if (lastCardId) {
+                    // Card was removed or read is finished
+                    lastCardId = null;
+                    updateCardStatus(null); // Reset UI to waiting state
+                }
+            }
+        } catch (error) {
+            console.error('Error polling for RFID card:', error);
+            updateConnectionStatus(false); // Disconnected on error
+            updateCardStatus(null, null, 'Error reading RFID', true);
+            // Optionally stop polling after errors
+            // stopPolling();
+        }
+    }
+
+    // Start polling
+    function startPolling() {
+        if (isPolling) return;
+        isPolling = true;
+        // Poll immediately first time
+        pollForCard();
+        pollInterval = setInterval(pollForCard, POLL_INTERVAL_MS);
+        console.log("RFID polling started.");
+    }
+
+    // Stop polling
+    function stopPolling() {
+        if (!isPolling) return;
+        isPolling = false;
+        clearInterval(pollInterval);
+        pollInterval = null;
+        updateConnectionStatus(false); // Show as disconnected when stopped
+        console.log("RFID polling stopped.");
+    }
+
+    // Public API
+    return {
+        init: init,
+        startPolling: startPolling, // Expose if manual control is needed
+        stopPolling: stopPolling   // Expose if manual control is needed
+    };
+})();
+
+
+// Define TicketManager module
+const TicketManager = (function() {
+    // Private variables
+    let isProcessing = false;
+    
+    // Show feedback in the card action message (uses RFIDReader's config now)
+    function updateCardActionMessage(message, isSuccess = true) {
+        const messageElement = document.getElementById('cardActionMessage'); // Direct ID access
+        if (messageElement) {
+            messageElement.textContent = message;
+            messageElement.parentElement.className = isSuccess ? 
+                'alert alert-info py-2 mb-0' : 'alert alert-danger py-2 mb-0';
+        }
+    }
+    
+    // Show a loading spinner in the given element (uses UIControls)
+    function setLoadingState(elementId, isLoading) {
+        if (typeof UIControls !== 'undefined' && typeof UIControls.toggleLoadingState === 'function') {
+            UIControls.toggleLoadingState(elementId, isLoading);
+        }
+    }
+    
+    // Create a new ticket
+    async function createTicket(rfidCard, weight) {
+        if (isProcessing) return;
+        isProcessing = true;
+        setLoadingState('quickCreateTicket', true); // Example loading state on a button
+        
+        try {
+            updateCardActionMessage('Creating new ticket...', true);
+            
+            const response = await fetch('/api/tickets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    rfid_card: rfidCard,
+                    gross_weight: weight
+                })
+            });
+            
+            const responseData = await response.json(); // Read response body once
+
+            if (!response.ok) {
+                 throw new Error(responseData.error || `Server error: ${response.status}`);
+            }
+            
+            // Show success message then reload
+            updateCardActionMessage(`Ticket #${responseData.id || 'new'} created successfully!`, true);
+            if (typeof UIControls !== 'undefined') UIControls.showAlert(`Ticket #${responseData.id || 'new'} created!`, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1500); // Slightly longer delay
+        } catch (error) {
+            console.error('Error creating ticket:', error);
+            updateCardActionMessage(error.message || 'Error creating ticket', false);
+             if (typeof UIControls !== 'undefined') UIControls.showAlert(error.message || 'Error creating ticket', 'danger');
+        } finally {
+            isProcessing = false;
+            setLoadingState('quickCreateTicket', false);
+        }
+    }
+
+    // Close an existing ticket
+    async function closeTicket(ticketId, tareWeight) {
+        if (isProcessing) return;
+        isProcessing = true;
+        setLoadingState('quickCloseTicket', true); // Example loading state
+        setLoadingState('submitManualWeight', true); // Also for modal button
+
+        try {
+            updateCardActionMessage(`Closing ticket #${ticketId}...`, true);
+            
+            const response = await fetch(`/api/tickets/${ticketId}/close`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    tare_weight: tareWeight
+                })
+            });
+            
+            const responseData = await response.json(); // Read response body once
+
+            if (!response.ok) {
+                throw new Error(responseData.error || `Server error: ${response.status}`);
+            }
+
+            // Show success message then reload
+            updateCardActionMessage(`Ticket #${ticketId} closed successfully!`, true);
+            if (typeof UIControls !== 'undefined') UIControls.showAlert(`Ticket #${ticketId} closed & printed!`, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } catch (error) {
+            console.error('Error closing ticket:', error);
+            updateCardActionMessage(error.message || 'Error closing ticket', false);
+            if (typeof UIControls !== 'undefined') UIControls.showAlert(error.message || 'Error closing ticket', 'danger');
+        } finally {
+            isProcessing = false;
+            setLoadingState('quickCloseTicket', false);
+            setLoadingState('submitManualWeight', false);
+        }
+    }
+
+    // Delete a ticket
+    async function deleteTicket(ticketId) {
+        // Loading state is handled in UIControls confirmation modal setup
+        try {
+            const response = await fetch(`/api/tickets/${ticketId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            const data = await response.json(); // Try to parse JSON regardless of status
+
+            if (!response.ok) {
+                throw new Error(data.error || `Server error: ${response.status}`);
+            }
+
+            return true; // Indicate success
+        } catch (error) {
+            console.error('Error deleting ticket:', error);
+            if (typeof UIControls !== 'undefined') {
+                UIControls.showAlert(error.message || 'Error deleting ticket', 'danger');
+            } else {
+                alert(error.message || 'Error deleting ticket');
+            }
+            return false; // Indicate failure
+        }
+        // Loading state reset is handled in UIControls confirmation modal setup
+    }
+
+    // Print a ticket receipt
+    async function printReceipt(ticketId) {
+        // Find the specific print button for this ticket ID to show loading
+        const printButton = document.querySelector(`button[onclick="printTicketReceipt('${ticketId}')"]`);
+        const buttonId = `printBtn_${ticketId}`;
+        if (printButton && !printButton.id) {
+             printButton.id = buttonId; // Assign temporary ID if needed
+        }
+        
+        setLoadingState(printButton ? printButton.id : null, true);
+
+        try {
+            if (typeof UIControls !== 'undefined') {
+                UIControls.showAlert('Sending print job...', 'info', 1500); // Shorter duration
+            }
+            
+            const response = await fetch(`/api/tickets/${ticketId}/print`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `Error printing ticket: ${response.status}`);
+            }
+            
+            if (typeof UIControls !== 'undefined') {
+                UIControls.showAlert(data.message || `Ticket #${ticketId} printed successfully`, 'success');
+            } else {
+                alert(data.message || `Ticket #${ticketId} printed successfully`);
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error printing ticket:', error);
+            if (typeof UIControls !== 'undefined') {
+                UIControls.showAlert(error.message || 'Error printing ticket', 'danger');
+            } else {
+                alert(error.message || 'Error printing ticket');
+            }
+            return false;
+        } finally {
+             setLoadingState(printButton ? printButton.id : null, false);
+        }
+    }
+
+    // Handle RFID scan and process ticket accordingly
+    async function handleRfidScan(cardId, weight) {
+        // isProcessing check is handled within create/close ticket functions
+        try {
+            updateCardActionMessage('Processing card...', true);
+            
+            if (!cardId) {
+                throw new Error('Invalid card ID received');
+            }
+            
+            if (isNaN(weight) || weight <= 0) {
+                // Allow zero weight? Maybe for tare first? Let's keep validation for now.
+                throw new Error('Invalid weight reading. Please check scale.');
+            }
+            
+            // Check if there's an open ticket for this card
+            const openTicket = document.querySelector(`.ticket-card[data-customer-rfid="${cardId}"]`);
+            
+            if (openTicket) {
+                // Close the existing ticket
+                const ticketId = openTicket.dataset.ticketId;
+                await closeTicket(ticketId, weight);
+            } else {
+                // Create a new ticket
+                await createTicket(cardId, weight);
+            }
+        } catch (error) {
+            console.error('Error handling RFID scan:', error);
+            updateCardActionMessage(error.message || 'Error processing ticket', false);
+            // Optionally show alert via UIControls
+            if (typeof UIControls !== 'undefined') UIControls.showAlert(error.message || 'Error processing ticket', 'danger');
+        }
+    }
+    
+    // Get the open ticket for a card if it exists
+    function getOpenTicketForCard(cardId) {
+        if (!cardId) return null;
+        
+        const openTicket = document.querySelector(`.ticket-card[data-customer-rfid="${cardId}"]`);
+        if (openTicket) {
+            return {
+                id: openTicket.dataset.ticketId,
+                element: openTicket
+            };
+        }
+        
+        return null;
+    }
+    
+    // Highlight an open ticket
+    function highlightOpenTicket(ticketId) {
+        if (!ticketId) return;
+        
+        // Remove highlight from all tickets first
+        document.querySelectorAll('.ticket-card').forEach(card => {
+            card.classList.remove('border-primary', 'shadow-lg'); // Use stronger shadow
+            card.style.transform = 'scale(1)';
+        });
+        
+        // Add highlight to the specified ticket
+        const ticket = document.querySelector(`.ticket-card[data-ticket-id="${ticketId}"]`);
+        if (ticket) {
+            ticket.classList.add('border-primary', 'shadow-lg');
+            ticket.style.transform = 'scale(1.03)'; // Slightly enlarge
+            
+            // Scroll the ticket into view if needed
+            ticket.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    // Public API
+    return {
+        createTicket: createTicket,
+        closeTicket: closeTicket,
+        deleteTicket: deleteTicket,
+        printReceipt: printReceipt,
+        handleRfidScan: handleRfidScan,
+        getOpenTicketForCard: getOpenTicketForCard,
+        highlightOpenTicket: highlightOpenTicket
+    };
+})();
+
+
+// Define UIControls module
+const UIControls = (function() {
+    // Private variables
+    let alertTimeout = null;
+    let activeTab = null;
+    
+    // Initialize the module
+    function init() {
+        // Set up tab switching functionality
+        setupTabs();
+        
+        // Set up event listeners for action buttons (data-action)
+        setupActionEventListeners(); // Renamed for clarity
+    }
+    
+    // Set up tab switching functionality
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                activeTab = e.target.id;
+                // Save the active tab in localStorage for persistence
+                try {
+                    localStorage.setItem('activeTab', activeTab);
+                } catch (e) {
+                    console.warn("Could not save active tab to localStorage:", e);
+                }
+            });
+        });
+        
+        // Restore active tab from localStorage if available
+        try {
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {
+                const tabElement = document.getElementById(savedTab);
+                if (tabElement && bootstrap.Tab.getInstance(tabElement)) {
+                     bootstrap.Tab.getInstance(tabElement).show();
+                } else if (tabElement) {
+                     new bootstrap.Tab(tabElement).show();
+                }
+            }
+        } catch (e) {
+             console.warn("Could not restore active tab from localStorage:", e);
+        }
+    }
+    
+    // Set up event listeners for elements with data-action attribute
+    function setupActionEventListeners() {
+        // Use event delegation on a parent container if possible, e.g., document.body
+        document.body.addEventListener('click', function(event) {
+            const button = event.target.closest('[data-action]'); // Find closest button with data-action
+            if (button) {
+                const action = button.getAttribute('data-action');
+                const params = { ...button.dataset }; // Copy dataset
+                delete params.action; // Remove action itself from params
+                
+                handleAction(action, params, button);
+            }
+        });
+
+        // Keep specific listeners if needed, but data-action is more generic
+        // Example: Quick customer select change (if not handled by data-action)
+        const quickCustomerSelect = document.getElementById('quickCustomerSelect');
+        if (quickCustomerSelect) {
+            quickCustomerSelect.addEventListener('change', function() {
+                const cardId = this.value;
+                if (cardId && typeof TicketManager !== 'undefined') {
+                    const openTicket = TicketManager.getOpenTicketForCard(cardId);
+                    if (openTicket) {
+                        TicketManager.highlightOpenTicket(openTicket.id);
+                    } else {
+                         // Optionally clear highlight if no open ticket
+                         TicketManager.highlightOpenTicket(null);
+                    }
+                } else if (typeof TicketManager !== 'undefined') {
+                     TicketManager.highlightOpenTicket(null); // Clear highlight if no customer selected
+                }
+            });
+        }
+    }
+    
+    // Handle UI actions triggered by data-action attribute
+    function handleAction(action, params, element) {
+        console.log(`Handling action: ${action}`, params); // Debug log
+        switch (action) {
+            case 'print-ticket':
+                if (params.ticketId && typeof TicketManager !== 'undefined') {
+                    // Loading state handled within printReceipt now
+                    TicketManager.printReceipt(params.ticketId);
+                }
+                break;
+                
+            case 'delete-ticket':
+                if (params.ticketId && typeof TicketManager !== 'undefined') {
+                    // Use the existing confirmDeleteTicket function which shows the modal
+                    if (typeof confirmDeleteTicket === 'function') {
+                        confirmDeleteTicket(params.ticketId);
+                    }
+                }
+                break;
+                
+            case 'switch-tab':
+                if (params.tabId) {
+                    switchToTab(params.tabId);
+                }
+                break;
+
+            case 'show-manual-weight':
+                 if (params.ticketId && typeof showManualWeightInput === 'function') {
+                     showManualWeightInput(params.ticketId);
+                 }
+                 break;
+
+            case 'toggle-view':
+                 if (typeof toggleOpenTicketsView === 'function') {
+                     toggleOpenTicketsView();
+                 }
+                 break;
+                 
+            // Add more actions as needed
+
+            default:
+                console.warn(`Unknown UI action: ${action}`);
+        }
+    }
+    
+    // Switch to a specific tab
+    function switchToTab(tabId) {
+        const tabElement = document.getElementById(tabId);
+        if (tabElement) {
+             const tabInstance = bootstrap.Tab.getInstance(tabElement) || new bootstrap.Tab(tabElement);
+             tabInstance.show();
+        } else {
+            console.warn(`Tab element not found: ${tabId}`);
+        }
+    }
+    
+    // Toggle a loading spinner on an element
+    function toggleLoadingState(elementId, isLoading) {
+        const element = document.getElementById(elementId);
+        if (!element) {
+            // console.warn(`Element not found for loading state: ${elementId}`);
+            return;
+        }
+        
+        const originalContent = element.getAttribute('data-original-content') || element.innerHTML;
+        
+        if (isLoading) {
+            // Save original content only if not already loading
+            if (!element.disabled) {
+                 element.setAttribute('data-original-content', originalContent);
+                 // Add spinner
+                 element.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Working...';
+                 element.disabled = true;
+            }
+        } else {
+            // Restore original content only if currently loading
+            if (element.disabled) {
+                 element.innerHTML = element.getAttribute('data-original-content') || 'Action'; // Fallback text
+                 element.disabled = false;
+                 element.removeAttribute('data-original-content'); // Clean up attribute
+            }
+        }
+    }
+    
+    // Show an alert message
+    function showAlert(message, type = 'info', duration = 3000) {
+        if (!message) return;
+        
+        // Clear any existing timeout for auto-dismissal
+        if (alertTimeout) clearTimeout(alertTimeout);
+        
+        // Get or create the alert container
+        let alertContainer = document.getElementById('alertContainer');
+        if (!alertContainer) {
+            alertContainer = document.createElement('div');
+            alertContainer.id = 'alertContainer';
+            // Styling for top-right corner
+            alertContainer.style.position = 'fixed';
+            alertContainer.style.top = '20px'; // More space from top
+            alertContainer.style.right = '20px';
+            alertContainer.style.zIndex = '1056'; // Ensure it's above modals (Bootstrap modal z-index is 1055)
+            alertContainer.style.maxWidth = '350px'; // Limit width
+            document.body.appendChild(alertContainer);
+        }
+        
+        // Create the alert element
+        const alertEl = document.createElement('div');
+        alertEl.className = `alert alert-${type} alert-dismissible fade show m-2`; // Added margin
+        alertEl.role = 'alert';
+        alertEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)'; // Slightly stronger shadow
+        
+        alertEl.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Prepend to container so newest alerts are on top
+        alertContainer.prepend(alertEl);
+        
+        // Initialize Bootstrap alert component
+        const bsAlert = new bootstrap.Alert(alertEl);
+        
+        // Auto dismiss after duration (if duration is positive)
+        if (duration > 0) {
+            alertTimeout = setTimeout(() => {
+                bsAlert.close();
+            }, duration);
+        }
+        
+        // Optional: Remove from DOM after fade out transition completes
+        alertEl.addEventListener('closed.bs.alert', function() {
+            alertEl.remove(); // Use remove() for modern browsers
+            // If container is empty, remove it? Maybe not, keep it for future alerts.
+        });
+    }
+    
+    // Return the public API
+    return {
+        init: init,
+        showAlert: showAlert,
+        toggleLoadingState: toggleLoadingState,
+        switchToTab: switchToTab
+    };
+})();
+
+
+// --- Existing script content from tickets.html ---
+
+// Global variables
 let deleteTicketModal;
 let manualWeightModal;
+let manualTicketModal; // Added for the manual creation modal
 let deleteTicketId = null;
 let isGridView = true; // Default to grid view for open tickets
 
 // Initialize on document load
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
     deleteTicketModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
     manualWeightModal = new bootstrap.Modal(document.getElementById('manualWeightModal'));
+    manualTicketModal = new bootstrap.Modal(document.getElementById('manualTicketModal')); // Initialize manual ticket modal
+
+    // Initialize the Weight Scale module
+    WeightScale.init(
+        'weightConnected',   // Toggle ID
+        'weightStatusText',  // Status text ID
+        'currentWeight',     // Weight display ID
+        'weightDisplayContainer' // Display container ID
+    );
     
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-        if (deleteTicketId) {
-            deleteTicket(deleteTicketId);
+    // Initialize the RFID Reader module with updated configuration
+    RFIDReader.init({
+        toggleId: 'rfidConnected',
+        statusTextId: 'rfidStatusText',
+        indicatorId: 'rfidIndicator',
+        statusMessageId: 'rfidStatusMessage',
+        cardInfoId: 'scannedCardInfo',
+        cardNameId: 'scannedCustomerName',
+        cardIdId: 'scannedCardId',
+        noCardInfoId: 'noCardInfo', // Pass ID for the 'waiting' message container
+        cardActionMessageId: 'cardActionMessage', // Pass ID for action messages
+        onCardDetected: async function(cardId) {
+            // This function is called by RFIDReader module when a new card is polled
+            console.log(`Card detected by RFIDReader: ${cardId}`);
+            
+            // Update action message (handled inside RFIDReader.updateCardStatus now)
+            // document.getElementById('cardActionMessage').textContent = 'Processing card...';
+            // document.getElementById('noCardInfo').style.display = 'none';
+            
+            // Wait a moment to show the message (optional, maybe handled by UI better)
+            await new Promise(resolve => setTimeout(resolve, 300)); // Shorter delay
+            
+            // Handle the card scan with the current weight using TicketManager
+            await TicketManager.handleRfidScan(cardId, WeightScale.getLastWeight());
+        }
+    });
+
+    // Initialize UIControls (handles tabs, data-actions)
+    UIControls.init();
+    
+    // --- Event listeners specific to tickets.html ---
+
+    // Customer selection in "Customer Info" tab
+    document.getElementById('quickCustomerSelect').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const customerInfo = document.getElementById('selectedCustomerInfo');
+        
+        if (this.value) {
+            document.getElementById('selectedCustomerName').textContent = selectedOption.text;
+            document.getElementById('selectedCustomerRfid').textContent = this.value;
+            customerInfo.classList.remove('d-none');
+            // Highlight corresponding open ticket if exists
+            if (typeof TicketManager !== 'undefined') {
+                 const openTicket = TicketManager.getOpenTicketForCard(this.value);
+                 TicketManager.highlightOpenTicket(openTicket ? openTicket.id : null);
+            }
+        } else {
+            customerInfo.classList.add('d-none');
+             if (typeof TicketManager !== 'undefined') {
+                 TicketManager.highlightOpenTicket(null); // Clear highlight
+             }
         }
     });
     
-    // Weight display should always be visible
-    document.getElementById('weightStatus').style.display = 'block';
-    
-    // Manual weight input for open tickets
-    document.getElementById('submitManualWeight').addEventListener('click', submitManualWeight);
-    
-    // Toggle view mode for open tickets
-    document.getElementById('toggleViewMode').addEventListener('click', toggleOpenTicketsView);
-    
-    // Manual ticket creation via quick panel
-    document.getElementById('createQuickTicket').addEventListener('click', createQuickTicket);
-    
-    // Show quick manual input when manual ticket button is clicked
-    document.querySelector('[data-bs-target="#manualTicketModal"]').addEventListener('click', function() {
-        // Option to show inline form instead of modal
-        if (event) event.preventDefault();
-        toggleManualInputPanel(true);
+    // Quick action buttons in "Quick Actions" tab
+    document.getElementById('quickCreateTicket').addEventListener('click', function() {
+        const customerSelect = document.getElementById('quickCustomerSelect');
+        if (customerSelect.value) {
+            createTicketWithCurrentWeight(customerSelect.value);
+        } else {
+            UIControls.showAlert('Please select a customer first in the "Customer Info" tab.', 'warning');
+        }
     });
     
-    // Cancel manual input
+    document.getElementById('quickCloseTicket').addEventListener('click', function() {
+        const customerSelect = document.getElementById('quickCustomerSelect');
+        if (!customerSelect.value) {
+             UIControls.showAlert('Please select a customer first in the "Customer Info" tab.', 'warning');
+            return;
+        }
+        
+        const openTicket = TicketManager.getOpenTicketForCard(customerSelect.value);
+        if (openTicket) {
+            const ticketId = openTicket.id;
+            closeTicketWithCurrentWeight(ticketId);
+        } else {
+             UIControls.showAlert('No open ticket found for the selected customer.', 'info');
+        }
+    });
+    
+    // Delete confirmation button in modal
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (deleteTicketId) {
+            // Use TicketManager.deleteTicket and handle promise
+            UIControls.toggleLoadingState('confirmDeleteBtn', true); // Show loading on confirm button
+            TicketManager.deleteTicket(deleteTicketId).then(success => {
+                if (success) {
+                    deleteTicketModal.hide();
+                    UIControls.showAlert(`Ticket #${deleteTicketId} deleted successfully.`, 'success');
+                    // Reload after a short delay to show message
+                    setTimeout(() => location.reload(), 1000);
+                }
+                // Error alert is handled within deleteTicket
+            }).finally(() => {
+                 UIControls.toggleLoadingState('confirmDeleteBtn', false); // Hide loading
+            });
+        }
+    });
+    
+    // Manual weight input modal submission
+    document.getElementById('submitManualWeight').addEventListener('click', submitManualWeight); // Keep using existing function
+    
+    // Toggle view mode button
+    document.getElementById('toggleViewMode').addEventListener('click', toggleOpenTicketsView); // Keep using existing function
+    
+    // Manual ticket creation via quick inline panel
+    document.getElementById('createQuickTicket').addEventListener('click', createQuickTicket); // Keep using existing function
+    
+    // Button to show the quick inline manual input panel
+    document.querySelector('button[data-bs-target="#manualTicketModal"]').addEventListener('click', function(event) {
+        // This button originally toggled the modal, let's change it to show the inline panel
+        event.preventDefault(); // Prevent modal from showing
+        toggleManualInputPanel(true); // Show the inline panel
+        UIControls.switchToTab('status-tab'); // Switch back to status tab if needed
+    });
+    
+    // Cancel button for the quick inline manual input panel
     document.getElementById('cancelManualInput').addEventListener('click', function() {
-        toggleManualInputPanel(false);
+        toggleManualInputPanel(false); // Hide the inline panel
     });
+    
+    // Manual ticket creation from the modal
+    document.getElementById('submitManualTicket').addEventListener('click', async function() {
+        const form = document.getElementById('manualTicketForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const rfidCard = document.getElementById('customerSelect').value;
+        const weight = parseFloat(document.getElementById('manualWeight').value);
+
+        if (!rfidCard) {
+             UIControls.showAlert('Please select a customer.', 'warning');
+             return;
+        }
+         if (isNaN(weight) || weight <= 0) {
+             UIControls.showAlert('Please enter a valid positive weight.', 'warning');
+             return;
+        }
+        
+        // Use TicketManager to create ticket
+        UIControls.toggleLoadingState('submitManualTicket', true);
+        try {
+            // createTicket handles reload on success
+            await TicketManager.createTicket(rfidCard, weight); 
+            // Hide modal only if creation was successful (reload happens anyway)
+            // manualTicketModal.hide(); // Might hide too early before reload
+            form.reset(); // Reset form fields
+        } catch (error) {
+             // Error already handled by createTicket (shows alert)
+             console.error("Manual ticket creation failed:", error);
+        } finally {
+             UIControls.toggleLoadingState('submitManualTicket', false);
+        }
+    });
+
+    // Apply initial view mode
+    applyViewMode(isGridView); // Call function to set initial state
 });
+
+// --- Helper functions specific to tickets.html ---
 
 function toggleManualInputPanel(show) {
     const statusPanel = document.getElementById('statusPanel');
     const manualInputPanel = document.getElementById('manualInputPanel');
     
     if (show) {
-        statusPanel.style.display = 'none';
-        manualInputPanel.style.display = 'block';
+        if (statusPanel) statusPanel.style.display = 'none';
+        if (manualInputPanel) manualInputPanel.style.display = 'block';
+        // Focus the customer select when shown
+        document.getElementById('manualCustomerSelect')?.focus();
     } else {
-        statusPanel.style.display = 'block';
-        manualInputPanel.style.display = 'none';
+        if (statusPanel) statusPanel.style.display = 'block'; // Or 'flex' if it was originally
+        if (manualInputPanel) manualInputPanel.style.display = 'none';
+        // Clear inputs when hiding
+        document.getElementById('manualCustomerSelect').value = '';
+        document.getElementById('quickInitialWeight').value = '';
     }
 }
 
-function toggleOpenTicketsView() {
-    const openTickets = document.getElementById('openTickets');
-    const ticketContainers = document.querySelectorAll('.ticket-container');
-    const toggleButton = document.getElementById('toggleViewMode');
-    
-    isGridView = !isGridView;
-    
-    if (isGridView) {
+// Refactored view mode logic
+function applyViewMode(isGrid) {
+     const openTickets = document.getElementById('openTickets');
+     const ticketContainers = document.querySelectorAll('.ticket-container');
+     const toggleButton = document.getElementById('toggleViewMode');
+
+     if (!openTickets || !toggleButton) return; // Elements not found
+
+     if (isGrid) {
         // Grid view
         openTickets.classList.add('d-flex', 'flex-wrap');
+        openTickets.classList.remove('flex-column'); // Ensure column class is removed
         ticketContainers.forEach(container => {
             container.classList.remove('col-12');
-            container.classList.add('col-md-3');
+            container.classList.add('col-md-4', 'col-lg-3'); // Adjust grid columns
         });
         toggleButton.innerHTML = '<i class="bi bi-list"></i> List View';
     } else {
         // List view
         openTickets.classList.remove('d-flex', 'flex-wrap');
+        openTickets.classList.add('flex-column'); // Use flex-column for list stacking
         ticketContainers.forEach(container => {
-            container.classList.remove('col-md-3');
+            container.classList.remove('col-md-4', 'col-lg-3');
             container.classList.add('col-12');
         });
         toggleButton.innerHTML = '<i class="bi bi-grid"></i> Grid View';
     }
 }
 
+function toggleOpenTicketsView() {
+    isGridView = !isGridView;
+    applyViewMode(isGridView);
+}
+
+
 function createQuickTicket() {
-    const rfidCard = document.getElementById('quickCustomerSelect').value;
-    const weight = parseFloat(document.getElementById('quickInitialWeight').value);
+    const rfidCard = document.getElementById('manualCustomerSelect').value;
+    const weightInput = document.getElementById('quickInitialWeight');
+    const weight = parseFloat(weightInput.value);
     
     if (!rfidCard) {
-        alert('Please select a customer');
+        UIControls.showAlert('Please select a customer.', 'warning');
         return;
     }
     
     if (isNaN(weight) || weight <= 0) {
-        alert('Please enter a valid weight');
+         UIControls.showAlert('Please enter a valid positive weight.', 'warning');
+         weightInput.focus();
         return;
     }
     
-    createTicket(rfidCard, weight);
+    // Use TicketManager, it handles alerts and reload
+    TicketManager.createTicket(rfidCard, weight);
+    // Hide panel after initiating creation (reload will happen on success)
     toggleManualInputPanel(false);
 }
 
-function showManualWeightInput(ticketId) {
-    document.getElementById('manualWeightTicketId').value = ticketId;
-    document.getElementById('manualTareWeight').value = '';
-    manualWeightModal.show();
-}
-
-async function submitManualWeight() {
-    const ticketId = document.getElementById('manualWeightTicketId').value;
-    const tareWeight = parseFloat(document.getElementById('manualTareWeight').value);
-    
-    if (isNaN(tareWeight) || tareWeight <= 0) {
-        alert('Please enter a valid weight');
+function createTicketWithCurrentWeight(rfidCard) {
+    const weight = WeightScale.getLastWeight();
+    if (isNaN(weight) || weight <= 0) {
+        UIControls.showAlert('Invalid weight reading from scale. Cannot create ticket.', 'danger');
         return;
     }
     
-    await closeTicket(ticketId, null, tareWeight);
+    // Use TicketManager
+    TicketManager.createTicket(rfidCard, weight);
+}
+
+function closeTicketWithCurrentWeight(ticketId) {
+    const weight = WeightScale.getLastWeight();
+    if (isNaN(weight) || weight <= 0) {
+         UIControls.showAlert('Invalid weight reading from scale. Cannot close ticket.', 'danger');
+        return;
+    }
+    
+    // Use TicketManager
+    TicketManager.closeTicket(ticketId, weight);
+}
+
+// Function to show the manual weight modal (called by button onclick)
+function showManualWeightInput(ticketId) {
+    document.getElementById('manualWeightTicketId').value = ticketId;
+    const weightInput = document.getElementById('manualTareWeight');
+    weightInput.value = ''; // Clear previous input
+    manualWeightModal.show();
+    // Focus input when modal is shown
+    weightInput.focus();
+}
+
+// Function to submit manual weight from modal
+async function submitManualWeight() {
+    const ticketId = document.getElementById('manualWeightTicketId').value;
+    const weightInput = document.getElementById('manualTareWeight');
+    const tareWeight = parseFloat(weightInput.value);
+    
+    if (isNaN(tareWeight) || tareWeight <= 0) {
+        UIControls.showAlert('Please enter a valid positive weight.', 'warning');
+        weightInput.focus();
+        return;
+    }
+    
+    // Use TicketManager, it handles alerts, reload, and hides modal implicitly via reload
+    await TicketManager.closeTicket(ticketId, tareWeight);
+    // Hide modal manually in case reload fails or is delayed
     manualWeightModal.hide();
 }
 
-// Continuous RFID monitoring
-async function monitorRfid() {
-    // Set initial indicator to red (disconnected/waiting)
-    const rfidIndicator = document.getElementById('rfidIndicator');
-    rfidIndicator.innerHTML = '<span class="badge rounded-pill bg-danger">&nbsp;</span>';
-    
-    // Make card info area available
-    const scannedCardInfo = document.getElementById('scannedCardInfo');
-    
-    while (true) {
-        try {
-            const response = await fetch('/api/rfid/read');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            
-            // Show connected status (reader is working)
-            rfidIndicator.innerHTML = '<span class="badge rounded-pill bg-warning">&nbsp;</span>';
-            
-            if (data.card_id && data.card_id !== lastRfidRead) {
-                lastRfidRead = data.card_id;
-                
-                // Turn indicator green when card detected
-                rfidIndicator.innerHTML = '<span class="badge rounded-pill bg-success">&nbsp;</span>';
-                
-                // Try to find customer name for this card
-                let customerName = "Unknown";
-                const openTicket = document.querySelector(`.ticket-card[data-customer-rfid="${data.card_id}"]`);
-                if (openTicket) {
-                    const ticketSubtitle = openTicket.querySelector('.card-subtitle');
-                    if (ticketSubtitle) customerName = ticketSubtitle.textContent.trim();
-                } else {
-                    // Try to find from customer select dropdown
-                    const customerSelect = document.getElementById('customerSelect');
-                    if (customerSelect) {
-                        for (const option of customerSelect.options) {
-                            if (option.value === data.card_id) {
-                                customerName = option.textContent;
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                // Update the card info display
-                document.getElementById('scannedCustomerName').textContent = customerName;
-                document.getElementById('scannedCardId').textContent = data.card_id;
-                scannedCardInfo.classList.remove('d-none');
-                
-                // Update the main status message
-                document.getElementById('rfidStatus').querySelector('p').textContent = "Processing card...";
-                
-                // Process the RFID scan
-                await handleRfidScan(data.card_id);
-                
-                // Reset the status after a few seconds
-                setTimeout(() => {
-                    rfidIndicator.innerHTML = '<span class="badge rounded-pill bg-warning">&nbsp;</span>';
-                    document.getElementById('rfidStatus').querySelector('p').textContent = "Monitoring RFID reader...";
-                    scannedCardInfo.classList.add('d-none');
-                }, 3000);
-            }
-        } catch (error) {
-            console.error('Error reading RFID:', error);
-            rfidIndicator.innerHTML = '<span class="badge rounded-pill bg-danger">&nbsp;</span>';
-            document.getElementById('rfidStatus').querySelector('p').textContent = "Error connecting to RFID reader";
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 500));
-    }
-}
-
-// Simulate weight reading (replace with actual weight reading endpoint)
-async function monitorWeight() {
-    while (true) {
-        try {
-            const response = await fetch('/api/weight/read');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            
-            if (data.weight) {
-                lastWeight = data.weight;
-                // Format with leading zeros and fixed decimal places for digital display effect
-                const formattedWeight = data.weight.toFixed(2).padStart(8, ' ');
-                document.getElementById('currentWeight').textContent = formattedWeight;
-                
-                // Add a subtle flash effect to show the reading is live
-                const weightElement = document.getElementById('currentWeight');
-                weightElement.classList.add('text-light');
-                setTimeout(() => {
-                    weightElement.classList.remove('text-light');
-                    weightElement.classList.add('text-success');
-                }, 100);
-            }
-        } catch (error) {
-            console.error('Error reading weight:', error);
-            const digitalDisplay = document.querySelector('.digital-display');
-            if (digitalDisplay) {
-                digitalDisplay.innerHTML = `
-                    <div class="alert alert-danger py-2 mb-0">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Error connecting to weight scale
-                    </div>
-                `;
-            }
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-}
-
-async function handleRfidScan(cardId) {
-    // Check if there's an open ticket for this card
-    const openTicket = document.querySelector(`.ticket-card[data-customer-rfid="${cardId}"]`);
-    
-    if (openTicket) {
-        // Close the existing ticket
-        const ticketId = openTicket.dataset.ticketId;
-        await closeTicket(ticketId, cardId, lastWeight);
-    } else {
-        // Create a new ticket
-        await createTicket(cardId, lastWeight);
-    }
-}
-
-async function createTicket(rfidCard, weight) {
-    try {
-        const response = await fetch('/api/tickets', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                rfid_card: rfidCard,
-                gross_weight: weight
-            })
-        });
-        
-        if (!response.ok) {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const error = await response.json();
-                throw new Error(error.error || 'Error creating ticket');
-            } else {
-                throw new Error(`Server error: ${response.status}`);
-            }
-        }
-        
-        await response.json(); // Make sure we can parse the response
-        location.reload();
-    } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Error creating ticket');
-    }
-}
-
-async function closeTicket(ticketId, rfidCard, tareWeight) {
-    try {
-        const response = await fetch(`/api/tickets/${ticketId}/close`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                tare_weight: tareWeight
-            })
-        });
-        
-        if (!response.ok) {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const error = await response.json();
-                throw new Error(error.error || 'Error closing ticket');
-            } else {
-                throw new Error(`Server error: ${response.status}`);
-            }
-        }
-
-        await response.json(); // Validate JSON response
-        location.reload();
-    } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Error closing ticket');
-    }
-}
-
-async function deleteTicket(ticketId) {
-    try {
-        const response = await fetch(`/api/tickets/${ticketId}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        const data = await response.json(); // Try to parse JSON regardless of status
-
-        if (!response.ok) {
-             throw new Error(data.error || `Server error: ${response.status}`);
-        }
-
-        // On success, hide modal and reload
-        deleteTicketModal.hide();
-        location.reload();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Error deleting ticket');
-        // Optionally hide modal even on error
-        deleteTicketModal.hide(); 
-    }
-}
-
+// Function to initiate printing (called by button onclick)
 function printTicketReceipt(ticketId) {
-    try {
-        // Call the API to print the specific ticket
-        fetch(`/api/tickets/${ticketId}/print`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        })
-        .then(async response => {
-            const data = await response.json(); // Try to parse JSON
-            if (!response.ok) {
-                // Throw error with message from JSON if available
-                throw new Error(data.error || `Error printing ticket: ${response.status}`);
-            }
-            return data; // Return parsed JSON data on success
-        })
-        .then(data => {
-            // Print succeeded
-            alert(data.message || `Ticket #${ticketId} printed successfully`);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message || 'Error printing ticket');
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        alert(error.message || 'Error printing ticket');
-    }
+    // Use TicketManager
+    TicketManager.printReceipt(ticketId);
 }
 
+// Function to show delete confirmation modal (called by button onclick)
 function confirmDeleteTicket(ticketId) {
-    deleteTicketId = ticketId;
-    document.getElementById('deleteTicketId').textContent = ticketId;
+    deleteTicketId = ticketId; // Store the ID for the confirmation button
+    document.getElementById('deleteTicketId').textContent = ticketId; // Update modal text
     deleteTicketModal.show();
 }
 
-// Manual ticket creation from modal
-document.getElementById('submitManualTicket').addEventListener('click', async function() {
-    const form = document.getElementById('manualTicketForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-    
-    const rfidCard = document.getElementById('customerSelect').value;
-    const weight = parseFloat(document.getElementById('manualWeight').value);
-    
-    await createTicket(rfidCard, weight);
-    const modal = bootstrap.Modal.getInstance(document.getElementById('manualTicketModal'));
-    if (modal) {
-        modal.hide();
-    }
-});
-
-// Manual ticket closing from modal
-document.getElementById('submitCloseTicket').addEventListener('click', async function() {
-    const form = document.getElementById('closeTicketForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-    
-    const ticketId = document.getElementById('closeTicketId').value;
-    const tareWeight = parseFloat(document.getElementById('tareWeight').value);
-    
-    await closeTicket(ticketId, null, tareWeight);
-    const modal = bootstrap.Modal.getInstance(document.getElementById('closeTicketModal'));
-    if (modal) {
-        modal.hide();
-    }
-});
-
-function showCloseTicketModal(ticketId, customerName, grossWeight) {
-    document.getElementById('closeTicketId').value = ticketId;
-    document.getElementById('closeTicketCustomer').value = customerName;
-    document.getElementById('closeTicketGross').value = grossWeight.toFixed(2);
-    document.getElementById('tareWeight').value = '';
-    
-    const modal = new bootstrap.Modal(document.getElementById('closeTicketModal'));
-    modal.show();
-}
-
-// Start monitoring
-monitorRfid();
-monitorWeight();
 </script>
 {% endblock %}
